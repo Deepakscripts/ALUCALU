@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AluCraft | Premium Aluminium Solutions</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        alu: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                            light: '#E8E9EB',
+                            DEFAULT: '#A0A4B8',
+                            dark: '#2C3038',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f1f5f9;
+            color: #1e293b;
+        }
+        
+        /* Metallic Gradient Background */
+        .bg-metallic {
+            background: linear-gradient(135deg, #e2e8f0 0%, #f8fafc 50%, #cbd5e1 100%);
+        }
+
+        /* Glassmorphism */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            border-top: 1px solid rgba(255, 255, 255, 0.8);
+            border-left: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+        }
+
+        /* Metallic Text */
+        .text-metallic {
+            background: linear-gradient(to right, #475569, #1e293b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Navbar Blur */
+        .nav-blur {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+        }
+    </style>
+</head>
+<body class="font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="fixed w-full z-50 nav-blur transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex-shrink-0 flex items-center gap-2">
+                    <i class="fa-solid fa-layer-group text-alu-700 text-2xl"></i>
+                    <span class="font-display font-bold text-2xl tracking-tight text-alu-800">Alu<span class="text-blue-600">Craft</span></span>
+                </div>
+                <div class="hidden md:flex space-x-8 items-center">
+                    <a href="{{ url_for('home') }}" class="text-alu-600 hover:text-blue-600 font-medium transition-colors">Home</a>
+                    <a href="#products" class="text-alu-600 hover:text-blue-600 font-medium transition-colors">Products</a>
+                    <a href="#about" class="text-alu-600 hover:text-blue-600 font-medium transition-colors">About</a>
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('admin_dashboard') }}" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-500/30">Dashboard</a>
+                        <a href="{{ url_for('admin_logout') }}" class="text-alu-600 hover:text-red-500 font-medium transition-colors">Logout</a>
+                    {% else %}
+                        <a href="{{ url_for('admin_login') }}" class="text-sm font-medium text-alu-500 hover:text-alu-800">Admin</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow pt-16">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="max-w-4xl mx-auto mt-4 px-4">
+                    {% for message in messages %}
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 rounded-r shadow-sm">
+                            <p class="text-blue-700">{{ message }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-alu-900 text-alu-300 py-12 mt-12 border-t border-alu-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+                <h3 class="text-white font-display font-bold text-xl mb-4">AluCraft</h3>
+                <p class="text-sm leading-relaxed text-alu-400">Premium Aluminium Windows, Doors, and Partitions for modern homes and offices. Crafted for durability and style.</p>
+            </div>
+            <div>
+                <h3 class="text-white font-bold mb-4">Contact</h3>
+                <p class="mb-2"><i class="fa-solid fa-phone mr-2 text-blue-500"></i> +91 98765 43210</p>
+                <p class="mb-2"><i class="fa-solid fa-envelope mr-2 text-blue-500"></i> info@alucraft.com</p>
+                <p><i class="fa-solid fa-location-dot mr-2 text-blue-500"></i> Industrial Area, City</p>
+            </div>
+            <div>
+                <h3 class="text-white font-bold mb-4">Quick Links</h3>
+                <ul class="space-y-2">
+                    <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                    <li><a href="#" class="hover:text-white transition-colors">Terms of Service</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="text-center mt-12 pt-8 border-t border-alu-800 text-sm text-alu-500">
+            &copy; 2026 AluCraft Stores. All rights reserved.
+        </div>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice #{{ invoice.id }} - AluCraft</title>
+    <!-- Tailwind CSS (Using CDN for simplicity in print view) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+
+            body {
+                background: white;
+                -webkit-print-color-adjust: exact;
+            }
+
+            .print-border {
+                border: 1px solid #ddd;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen p-8">
+
+    <div class="max-w-4xl mx-auto bg-white shadow-xl rounded-xl overflow-hidden print-border">
+
+        <!-- Header -->
+        <div class="bg-slate-900 text-white p-8 flex justify-between items-start">
+            <div>
+                <h1 class="text-3xl font-bold tracking-tight mb-1">INVOICE</h1>
+                <p class="text-slate-400 text-sm">#INV-{{ "%04d"|format(invoice.id) }}</p>
+            </div>
+            <div class="text-right">
+                <h2 class="text-2xl font-bold mb-1">AluCraft Stores</h2>
+                <div class="text-sm text-slate-300 space-y-1">
+                    <p>Industrial Area, Sector 4</p>
+                    <p>City, State, ZIP</p>
+                    <p>contact@alucraft.com</p>
+                    <p>+91 98765 43210</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Grid -->
+        <div class="p-8 border-b border-gray-200">
+            <div class="grid grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Billed To</h3>
+                    <h4 class="text-lg font-bold text-gray-800 mb-2">{{ invoice.customer_name }}</h4>
+                    <div class="text-gray-600 text-sm space-y-1">
+                        <p class="whitespace-pre-line">{{ invoice.customer_address }}</p>
+                        <p class="mt-2"><span class="font-medium text-gray-500">Phone:</span> {{ invoice.customer_phone
+                            }}</p>
+                    </div>
+                </div>
+                <div class="text-right flex flex-col items-end">
+                    <div class="mb-6">
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Invoice Date</h3>
+                        <p class="text-gray-800 font-medium">{{ invoice.created_at.strftime('%B %d, %Y') }}</p>
+                    </div>
+                    <div>
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Total Amount</h3>
+                        <p class="text-3xl font-bold text-blue-600">₹{{ "%.2f"|format(invoice.total_amount) }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Items Table -->
+        <div class="p-8">
+            <table class="w-full text-left">
+                <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-bold border-y border-gray-200">
+                    <tr>
+                        <th class="py-4 pl-4">Product Description</th>
+                        <th class="py-4 text-center">Dimensions</th>
+                        <th class="py-4 text-center">Area (sq.ft)</th>
+                        <th class="py-4 text-center">Rate</th>
+                        <th class="py-4 text-right pr-4">Amount</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 text-sm">
+                    <tr>
+                        <td class="py-4 pl-4">
+                            <p class="font-bold text-gray-800 text-base">{{ invoice.product_name }}</p>
+                            <p class="text-gray-500 text-xs mt-1">Custom Fabrication</p>
+                        </td>
+                        <td class="py-4 text-center text-gray-600">
+                            {{ invoice.height_ft }}' H x {{ invoice.width_ft }}' W
+                        </td>
+                        <td class="py-4 text-center text-gray-600">
+                            {{ "%.2f"|format(invoice.height_ft * invoice.width_ft) }}
+                        </td>
+                        <td class="py-4 text-center text-gray-600">
+                            ₹{{ invoice.sqft_price_at_booking }}
+                        </td>
+                        <td class="py-4 text-right pr-4 font-bold text-gray-800">
+                            ₹{{ "%.2f"|format(invoice.total_amount / invoice.quantity) }}
+                        </td>
+                    </tr>
+                    {% if invoice.quantity > 1 %}
+                    <!-- If multiple quantities, we might want to show them differently, but for now we follow the logic: Total = Unit Price * Qty. 
+                         The simplified model calculates total directly. If we want to show unit price vs total, the above row is 'per unit' roughly if we assumed qty 1 for row logic, but let's just make it clear.
+                         Let's adjust: The logic in app.py is Total = Area * Price * Quantity.
+                         So Row Amount above effectively is (Total / Qty).
+                    -->
+                    {% endif %}
+                </tbody>
+                <tfoot class="border-t-2 border-gray-100">
+                    <tr>
+                        <td colspan="4" class="pt-6 text-right font-bold text-gray-500">Subtotal</td>
+                        <td class="pt-6 text-right pr-4 font-bold text-gray-800">₹{{ "%.2f"|format(invoice.total_amount)
+                            }}</td>
+                    </tr>
+                    <!-- Optional: Add Tax logic here in future if needed -->
+                    <tr>
+                        <td colspan="4" class="pt-2 text-right font-bold text-blue-600 text-lg">Grand Total</td>
+                        <td class="pt-2 text-right pr-4 font-bold text-blue-600 text-lg">₹{{
+                            "%.2f"|format(invoice.total_amount) }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <div class="bg-gray-50 p-8 border-t border-gray-200 text-center text-xs text-gray-500">
+            <p class="mb-2">Thank you for your business!</p>
+            <p>Please make checks payable to "AluCraft Stores". Payment is due within 30 days.</p>
+        </div>
+
+    </div>
+
+    <!-- Actions -->
+    <div class="max-w-4xl mx-auto mt-8 flex justify-between no-print">
+        <a href="{{ url_for('admin_dashboard') }}"
+            class="text-gray-600 hover:text-gray-900 font-medium flex items-center gap-2">
+            &larr; Back to Dashboard
+        </a>
+        <button onclick="window.print()"
+            class="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold shadow-lg hover:bg-blue-700 transition-all flex items-center gap-2">
+            Print Invoice
+        </button>
+    </div>
+
+</body>
+
+</html>
