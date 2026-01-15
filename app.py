@@ -65,6 +65,26 @@ class Invoice(db.Model):
 def load_user(user_id):
     return Admin.query.get(int(user_id))
 
+# --- Database Initialization ---
+def init_database():
+    """Initialize database tables and create default admin if needed."""
+    with app.app_context():
+        db.create_all()
+        # Create default admin if not exists
+        if not Admin.query.filter_by(username='admin').first():
+            print("Creating default admin...")
+            admin = Admin(username='admin')
+            admin.set_password('admin123')
+            db.session.add(admin)
+            # Initialize Labor Cost if not exists
+            if not LaborCost.query.first():
+                db.session.add(LaborCost(rate_per_sqft=50.0))
+            db.session.commit()
+            print("Database initialized successfully.")
+
+# Initialize database on startup
+init_database()
+
 # --- CLI Commands ---
 @app.cli.command("create-admin")
 def create_admin():
