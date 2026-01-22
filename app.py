@@ -44,6 +44,12 @@ class LaborCost(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     rate_per_sqft = db.Column(db.Float, default=0.0)
 
+class MaterialRate(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(50), unique=True, nullable=False)
+    value = db.Column(db.Float, nullable=False)
+    label = db.Column(db.String(100))
+
 class Invoice(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     customer_name = db.Column(db.String(100), nullable=False)
@@ -76,11 +82,32 @@ def init_database():
             admin = Admin(username='admin')
             admin.set_password('admin123')
             db.session.add(admin)
-            # Initialize Labor Cost if not exists
-            if not LaborCost.query.first():
-                db.session.add(LaborCost(rate_per_sqft=50.0))
-            db.session.commit()
-            print("Database initialized successfully.")
+        
+        # Initialize Labor Cost if not exists
+        if not LaborCost.query.first():
+            db.session.add(LaborCost(rate_per_sqft=50.0))
+        
+        # Initialize Material Rates (Always check and add missing ones)
+        default_rates = [
+            ('alu_color', 410.0, 'Aluminum Color (Rs/kg)'),
+            ('alu_silver', 360.0, 'Aluminum Silver (Rs/kg)'),
+            ('glass', 45.0, 'Glass (Rs/sqft)'),
+            ('glass_rubber', 10.0, 'Glass Rubber (Rs/ft)'),
+            ('track_rubber', 80.0, 'Track Rubber (Rs/window)'),
+            ('mosquito_net', 10.0, 'Mosquito Net (Rs/sqft)'),
+            ('u_channel', 100.0, 'U-Channel (Rs/window)'),
+            ('screw', 80.0, 'Screw (Rs/window)'),
+            ('lock', 170.0, 'Lock (Rs/unit)'),
+            ('bearing', 10.0, 'Bearing (Rs/unit)'),
+            ('labour_min', 350.0, 'Labour Minimum (Rs)'),
+            ('labour_sqft', 24.0, 'Labour (Rs/sqft)')
+        ]
+        for key, val, label in default_rates:
+            if not MaterialRate.query.filter_by(key=key).first():
+                db.session.add(MaterialRate(key=key, value=val, label=label))
+        
+        db.session.commit()
+        print("Database initialized successfully.")
 
 # Initialize database on startup
 init_database()
@@ -159,11 +186,40 @@ def admin_dashboard():
     products = Product.query.all()
     labor_cost = LaborCost.query.first()
     invoices = Invoice.query.order_by(Invoice.created_at.desc()).all()
+    material_rates = {r.key: r for r in MaterialRate.query.all()}
     return render_template('admin/dashboard.html', 
                          categories=categories, 
                          products=products, 
                          labor_cost=labor_cost,
-                         invoices=invoices)
+                         invoices=invoices,
+                         material_rates=material_rates)
+
+@app.route('/admin/calculator')
+@login_required
+def admin_calculator():
+    material_rates = {r.key: r.value for r in MaterialRate.query.all()}
+    return render_template('admin/calculator.html', rates=material_rates)
+
+@app.route('/admin/rates/update', methods=['POST'])
+@login_required
+def update_rates():
+    for key, value in request.form.items():
+        if key == 'redirect_to':
+            continue
+        rate = MaterialRate.query.filter_by(key=key).first()
+        if rate:
+            try:
+                rate.value = float(value)
+            except ValueError:
+                pass
+    db.session.commit()
+    flash("Rates updated successfully!")
+    
+    # Redirect back to where the request came from
+    redirect_to = request.form.get('redirect_to', 'dashboard')
+    if redirect_to == 'calculator':
+        return redirect(url_for('admin_calculator'))
+    return redirect(url_for('admin_dashboard'))
 
 # Admin API / Actions (Simplified for MVP) - ideally use REST API or separate routes
 @app.route('/admin/category/add', methods=['POST'])

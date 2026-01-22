@@ -150,3 +150,9 @@ Thumbs.db
 *.db
 *.sqlite
 *.sqlite3
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+.DS_Store
